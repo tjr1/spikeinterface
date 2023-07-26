@@ -1,11 +1,9 @@
 import numpy as np
-import pandas as pd
+# import pandas as pd
 from pathlib import Path
-
 
 from spikeinterface.core import BaseRecording, BaseRecordingSegment
 from spikeinterface.core.core_tools import define_function_from_class
-
 
 class Mef3Extractor(BaseRecording):
     """Load Mef3 data as an extractor object.
@@ -27,7 +25,6 @@ class Mef3Extractor(BaseRecording):
     """
 
     extractor_name = "Mef3"
-    installed = HAVE_PYMEF
     mode = "folder"
     installation_mesg = "To use the Mef3Extractor, install pymef \n\n pip install pymef\n\n note: pymef requires python 3.8 currently\n\n"
     name = "Mef3"
@@ -84,8 +81,6 @@ class Mef3Extractor(BaseRecording):
         Rdr = MefReader(path_input,password2=pword2)
         self._Rdr = Rdr
 
-
-
         unique_stream_rate_groups = self.get_unique_stream_rate_groups(Rdr = Rdr)
         assert stream_rate in unique_stream_rate_groups, (
             f"The `stream_rate` '{stream_rate}' was not found in the available list of stream rates! "
@@ -93,10 +88,7 @@ class Mef3Extractor(BaseRecording):
         )
 
         # get basic metadata
-        sampling_frequency = stream_rate
-        # start_time = min(Rdr.get_property('start_time'))
-        # end_time = max(Rdr.get_property('end_time'))
-
+        sampling_frequency = stream_rate # the stream rate you asked for
         chans = ms.read_ts_channel_basic_info()
         start_time = min([chans[ch]['start_time'][0] for ch in range(len(chans))])
         end_time = max([chans[ch]['end_time'][0] for ch in range(len(chans))])
@@ -118,17 +110,10 @@ class Mef3Extractor(BaseRecording):
 
         # should add probe info here and set_property
 
-
         recording_segment = Mef3Segment(Rdr=self._Rdr, chans_in_stream_rate_group=chans_in_stream_rate_group) # need chans_in_stream_rate_group?
 
         self.add_recording_segment(recording_segment)
 
-        # self, 
-        # folder_path: str, 
-        # stream_rate: int,
-        # pword2: Optional[str] = None,
-        # electrode_locations_file: Optional[str] = None):
-    
         self._kwargs = {
             "folder_path": folder_path,
             "stream_rate": stream_rate,
@@ -160,4 +145,8 @@ class Mef3Segment(BaseRecordingSegment):
 
         channel_str_list = [self._chans_in_stream_rate_group[ch]['name'] for ch in range(len(self._chans_in_stream_rate_group))]
         traces = self._Rdr.read_ts_channels_sample(channel_str_list[channel_indices];, [[start_frame, end_frame]])
-
+        return traces
+    
+read_mef3_recording = define_function_from_class(
+    source_class=Mef3Extractor, name="read_mef3_recording"
+)
